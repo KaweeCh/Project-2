@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivatedRoute } from '@angular/router';
-import { User, imageUpload } from '../../../model/model';
+import { User, imageUpload, imageUser } from '../../../model/model';
 import { ApiService } from '../../../services/api-service';
 import { ShareService } from '../../../services/share.service';
 import { Router } from '@angular/router';
@@ -34,7 +34,7 @@ export class ProfileComponent {
     private router: Router
   ) {}
   id: any;
-  public images: imageUpload[] = [];
+  public images: imageUser[] = [];
   httpError: boolean = false;
   imageCount: number = 0;
   isAddIconTransformed: boolean = false;
@@ -44,12 +44,20 @@ export class ProfileComponent {
   deleteSelect : number[] = [];
   async ngOnInit() {
     this.checkLogin();
+    this.setData();
+    this.getImage();
+  }
+
+  async getImage(){
+    await this.shareData.getImage(this.id);
+    this.images = this.shareData.images;
+    this.imageCount = this.images.length;
+  }
+
+  setData(){
     this.id = localStorage.getItem('userID');
     const userDataString = localStorage.getItem("userData");
     this.userData = userDataString ? JSON.parse(userDataString) : null;
-    await this.shareData.getImage(+this.id);
-    this.images = this.shareData.images;
-    this.imageCount = this.images.length;
   }
 
   checkLogin(){

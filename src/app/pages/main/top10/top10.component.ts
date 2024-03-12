@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api-service';
 import { ShareService } from '../../../services/share.service';
 import { MatIconModule } from '@angular/material/icon';
-import { User, imageUpload } from '../../../model/model';
+import { User, imageUpload, imageUser } from '../../../model/model';
 
 @Component({
   selector: 'app-top10',
@@ -43,7 +43,7 @@ export class Top10Component implements OnInit {
   //   '/assets/Image/castle-3175321_960_720.jpg',
   //   '/assets/Image/castle-3175321_960_720.jpg',
   // ];
-  imageUrls : imageUpload[] = [];
+  imageUrls : imageUser[] = [];
   id: any;
   userData : User | undefined;
   userUrls : User[] = [];

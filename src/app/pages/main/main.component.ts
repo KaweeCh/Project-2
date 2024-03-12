@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivatedRoute } from '@angular/router';
-import { User, imageUpload } from '../../model/model';
+import { User, imageUpload, imageUser } from '../../model/model';
 import { ApiService } from '../../services/api-service';
 import { ShareService } from '../../services/share.service';
 import { Router } from '@angular/router';
@@ -36,9 +36,8 @@ export class MainComponent implements OnInit {
   leftImage: any;
   rightImage: any;
   K_FACTOR: number = 32;
-  userData1: User | undefined;
-  userData2: User | undefined;
-  public images: imageUpload[] = [];
+ 
+  public images: imageUser[] = [];
   canVote = true;
   isCD = true;
   httpError: boolean = false;
@@ -48,6 +47,7 @@ export class MainComponent implements OnInit {
     this.id = localStorage.getItem('userID');
     this.checkData();
     this.images = await this.api.getImage();
+    console.log(this.images);
     this.loadImages();
   }
 
@@ -89,27 +89,17 @@ export class MainComponent implements OnInit {
 
       this.leftImage = this.images[randomIndex1];
       this.rightImage = this.images[randomIndex2];
-      this.shuffleImages(this.images);//api
     } else {
       this.canVote = false;
-      // Handle this case based on your requirements
     }
   }
 
-  async shuffleImages(images: any[]) {
-    const [userData1, userData2] = await Promise.all([
-      this.api.getUserbyId(this.leftImage.userID),
-      this.api.getUserbyId(this.rightImage.userID),
-    ]);
 
-    this.userData1 = userData1;
-    this.userData2 = userData2;
-  }
 
-  reshuffleImages(winner: imageUpload, loser: imageUpload) {
+  reshuffleImages(winner: imageUser, loser: imageUser) {
     if (this.isCD) {
       this.isCD = false;
-      this.chooseRandomImages(winner);
+      this.chooseRandomImages(winner , loser);
       this.loadImages();
       if (this.canVote) {
         this.calrating(winner, loser);
@@ -121,8 +111,7 @@ export class MainComponent implements OnInit {
     }
   }
 
-  async calrating(winner: imageUpload, loser: imageUpload) {
-    // เปลี่ยน count เป็น eloRating สำหรับความชัดเจน
+  async calrating(winner: imageUser, loser: imageUser) {
     const winnerEloRating = winner.count;
     const loserEloRating = loser.count;
 
@@ -202,17 +191,23 @@ export class MainComponent implements OnInit {
     this.shareData.userData = undefined;
   }
 
-  chooseRandomImages(select: imageUpload) {
+  chooseRandomImages(select: imageUser , select2: imageUser) {
     const foundItemIndex = this.images.findIndex(
       (item) => item.imageID === select.imageID
     );
 
-    if (foundItemIndex !== -1) {
-      const chosenImage = this.images.splice(foundItemIndex, 1)[0];
-      console.log( this.images);
+    const foundItemIndex2 = this.images.findIndex(
+      (item) => item.imageID === select2.imageID
+    );
 
+    if (foundItemIndex !== -1 && foundItemIndex2 !== -1) {
+      const chosenImage = this.images.splice(foundItemIndex, 1)[0];
+      const chosenImage2 = this.images.splice(foundItemIndex2, 1)[0];
+
+      console.log('all', this.images);
       setTimeout(() => {
         this.images.push(chosenImage);
+        this.images.push(chosenImage2);
         console.log('Array after addition:', this.images);
         if (this.images.length >= 2) {
           this.canVote = true;
@@ -220,7 +215,7 @@ export class MainComponent implements OnInit {
       }, 100000);
     } else {
       console.log(
-        `Item with imageID ${select.imageID} not found in the array.`
+        `Item with imageID ${select.imageID} not found in the array or Item with imageID ${select2.imageID} not found in the array.`
       );
     }
   }

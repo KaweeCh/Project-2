@@ -21,6 +21,14 @@ export interface imageUpload {
   userID: number;
 }
 
+export interface imageUser {
+  imageID: number;
+  url: string;
+  count: number;
+  username: number;
+  userID : number;
+}
+
 export interface Vote {
   elorating: number;
   userID: number;
@@ -32,4 +40,5 @@ export interface Statistic {
   voteScore: number;
   date: Date;
   imageID : number;
+ 
 }

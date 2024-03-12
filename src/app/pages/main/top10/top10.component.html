@@ -35,7 +35,7 @@
       <div class="item" *ngFor="let imageUrl of imageUrls.slice(0, 3)">
         <img [src]="imageUrl.url" alt="Image">
         <div>
-            <p>View By {{imageUrl.userID}} Score: {{imageUrl.count}}</p>
+            <p>View By {{imageUrl.username}} Score: {{imageUrl.count}}</p>
         </div>
       </div>
     </div>
@@ -45,7 +45,7 @@
           <img [src]="imageUrl.url" alt="Image">
           <div class="text-container">
             <div>
-                <p>View By {{imageUrl.userID}} Score: {{imageUrl.count}}</p>
+                <p>View By {{imageUrl.username}} Score: {{imageUrl.count}}</p>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivatedRoute } from '@angular/router';
-import { Statistic, User, imageUpload } from '../../../model/model';
+import { Statistic, User, imageUpload, imageUser } from '../../../model/model';
 import { ApiService } from '../../../services/api-service';
 import { ShareService } from '../../../services/share.service';
 import { Router } from '@angular/router';
@@ -29,7 +29,6 @@ import Chart from 'chart.js/auto';
 
 export class ChartComponent {
   public chart: any;
-  images: imageUpload[] = [];
   statistics: Statistic[] = [];
   httpError: boolean = false;
   userID : any;
@@ -123,16 +122,31 @@ export class ChartComponent {
       date.setDate(currentDate.getDate() - i);
   
       labels.push(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`);
-      
     }
-    for(let i = 0; i < 7; i++){
-      if(this.statistics[i]){
-        data.push(this.statistics[i].voteScore);
-      }else{
+  
+    labels.reverse(); // Reverse labels array
+  
+    for (let i = 0; i < 7; i++) {
+      const currentDateMinusDays = new Date(currentDate);
+      currentDateMinusDays.setDate(currentDate.getDate() - i);
+  
+      // Check if there is data for the current date
+      const dataForCurrentDate = this.statistics.find(statistic => {
+        const statisticDate = new Date(statistic.date);
+        return (
+          currentDateMinusDays.getFullYear() === statisticDate.getFullYear() &&
+          currentDateMinusDays.getMonth() === statisticDate.getMonth() &&
+          currentDateMinusDays.getDate() === statisticDate.getDate()
+        );
+      });
+  
+      if (dataForCurrentDate) {
+        data.push(dataForCurrentDate.voteScore);
+      } else {
         data.push(0);
       }
-      
     }
+  
     console.error(data);
   
     this.chart = new Chart("MyChart", {
@@ -142,7 +156,7 @@ export class ChartComponent {
         datasets: [
           {
             label: "Score",
-            data:  Array.from(data).reverse(),
+            data: data,
             backgroundColor: 'blue'
           },
         ]
@@ -154,4 +168,5 @@ export class ChartComponent {
       },
     });
   }
+  
 }

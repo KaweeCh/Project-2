@@ -2,7 +2,7 @@ import { Injectable, OnInit } from '@angular/core';
 import { Constant } from '../config/constaint';
 import { HttpClient } from '@angular/common/http';
 import { count, lastValueFrom } from 'rxjs';
-import { Register, Statistic, User, Vote, imageUpload } from '../model/model';
+import { Register, Statistic, User, Vote, imageUpload, imageUser } from '../model/model';
 
 
 @Injectable({
@@ -25,13 +25,13 @@ export class ApiService {
   }
   public async getImage() {
     const response = await lastValueFrom(
-      this.http.get<imageUpload[]>(`${this.url}/images`));
+      this.http.get<imageUser[]>(`${this.url}/images`));
     return response
   }
 
   public async getTopImage() {
     const response = await lastValueFrom(
-      this.http.get<imageUpload[]>(`${this.url}/images/top10`));
+      this.http.get<imageUser[]>(`${this.url}/top`));
     return response
   }
 
@@ -53,9 +53,14 @@ export class ApiService {
   }
 
   public async getUserbyId(userId: number) {
-    const response = await lastValueFrom(
-      this.http.get(`${this.url}/users/${userId}`));
-    return response as User
+    if(userId){
+      const response = await lastValueFrom(
+        this.http.get(`${this.url}/users/${userId}`));
+      return response as User
+    }else{
+      return;
+    }
+    
   }
 
   public async getImagebyId(imageID: number) {
