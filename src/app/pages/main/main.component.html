@@ -1,0 +1,98 @@
+<mat-toolbar class="fxLayout-dark" *ngIf="shareData.userData!== undefined; else guestToolbar">
+    <div class="fxLayout" (click)="navigateToMain()">
+        <img logo src="assets/Image/log_View.png" alt="icon" />
+        <span>View</span>
+    </div>
+    <div>
+        <div class="button_fx">
+            <div class="profile-picture">
+                <img logo (click)="navigateProfile()" src="{{shareData.userData?.image}}" alt="icon" />
+            </div>
+            <div class="logo-container">
+                <button (click)="navigateTop()" mat-button color="basic" class="bt-span">
+                    <mat-icon class="icon-margin">emoji_events</mat-icon>
+                    Top10
+                </button>
+            </div>
+
+            <div class="logo-container">
+                <button mat-button color="basic" class="bt-span">
+                    <mat-icon class="icon-margin">star</mat-icon>
+                    Rating
+                </button>
+            </div>
+            <button mat-flat-button type="submit" color="basic" class="mat-bt logout" (click)="navigateToLogin()">
+                <mat-icon>exit_to_app</mat-icon>
+                Logout
+            </button>
+        </div>
+    </div>
+</mat-toolbar>
+
+<ng-template #guestToolbar>
+    <mat-toolbar class="fxLayout-dark">
+        <div class="fxLayout">
+            <img logo src="assets/Image/log_View.png" alt="icon" />
+            <span>View</span>
+        </div>
+        <div class="button_fx">
+            <div class="profile-picture">
+                <img logo (click)="navigateToMain()" src="../../../assets/Image/catavatar.png" alt="icon" />
+            </div>
+            <div class="logo-container">
+                <button (click)="navigateTop()" mat-button color="basic" class="bt-span">
+                    <mat-icon class="icon-margin">emoji_events</mat-icon>
+                    Top10
+                </button>
+            </div>
+
+            <button mat-flat-button type="submit" class="login" color="basic" (click)="navigateToLogin()">
+                <mat-icon class="icon-margin">login</mat-icon>
+                Sign In
+            </button>
+
+            <button mat-flat-button type="submit" class="signout" color="basic" (click)="navigateToSignUp()">
+                <mat-icon class="icon-margin">person_add</mat-icon>
+                Sign Up
+            </button>
+        </div>
+    </mat-toolbar>
+</ng-template>
+
+<div class="vote-con" *ngIf="canVote; else waitForVote">
+    <h1>Click to Reshuffle Images</h1>
+    <ng-container *ngIf="leftImage && rightImage; else loadingImages">
+        <div class="img-con">
+            <div class="item" >
+                <img [src]="leftImage?.url" (click)="reshuffleImages(leftImage, rightImage)" alt="">
+                <h3>
+                    view by {{ userData1?.username || 'ไม่พบผู้ใช้' }}
+                    <mat-icon style="color: red;">favorite</mat-icon>
+                    {{ leftImage?.count || 0 || 'ไม่พบคะแนน' }}
+                </h3>
+            </div>
+            <div class="item">
+                <img [src]="rightImage?.url" (click)="reshuffleImages(rightImage, leftImage)" alt="">
+                <h3>
+                    view by {{ userData2?.username || 'ไม่พบผู้ใช้' }}
+                    <mat-icon style="color: red;">favorite</mat-icon>
+                    {{ rightImage?.count || 0 || 'ไม่พบคะแนน' }}
+                </h3>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #loadingImages>
+
+        <body>
+            <div class="loader">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </body>
+    </ng-template>
+</div>
+
+<ng-template #waitForVote>
+    <h1 style="display: flex; justify-content: center; align-items: center;">Wait For Image Cooldown</h1>
+</ng-template>
