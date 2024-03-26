@@ -30,13 +30,14 @@ export class MainComponent implements OnInit {
     protected shareData: ShareService,
     protected api: ApiService,
     private router: Router
-  ) { }
+  ) {}
 
   id: any;
   leftImage: any;
   rightImage: any;
   K_FACTOR: number = 32;
- 
+  userData1: User | undefined;
+  userData2: User | undefined;
   public images: imageUser[] = [];
   canVote = true;
   isCD = true;
@@ -52,13 +53,13 @@ export class MainComponent implements OnInit {
   }
 
   checkData() {
-    const userDataString = localStorage.getItem("userData");
+    const userDataString = localStorage.getItem('userData');
     if (userDataString) {
       try {
         const userData = JSON.parse(userDataString);
         this.shareData.userData = userData;
       } catch (error) {
-        console.error("Error parsing userData from localStorage:", error);
+        console.error('Error parsing userData from localStorage:', error);
         this.loadData();
       }
     } else {
@@ -69,12 +70,11 @@ export class MainComponent implements OnInit {
     if (!this.id) {
       return;
     }
-    if (!localStorage.getItem("userData")) {
+    if (!localStorage.getItem('userData')) {
       this.shareData.userData = await this.api.getUserbyId(this.id);
       localStorage.setItem('userData', JSON.stringify(this.shareData.userData));
       console.log(this.shareData.userData);
     }
-
   }
 
   async loadImages() {
@@ -83,7 +83,11 @@ export class MainComponent implements OnInit {
       const randomIndex1 = Math.floor(Math.random() * this.images.length);
       let randomIndex2 = Math.floor(Math.random() * this.images.length);
 
-      while (randomIndex2 === randomIndex1) {
+      while (
+        randomIndex2 === randomIndex1 ||
+        this.images[randomIndex2].imageID === this.leftImage?.imageID ||
+        this.images[randomIndex2].imageID === this.rightImage?.imageID
+      ) {
         randomIndex2 = Math.floor(Math.random() * this.images.length);
       }
 
@@ -92,14 +96,20 @@ export class MainComponent implements OnInit {
     } else {
       this.canVote = false;
     }
+
+    const [userData1, userData2] = await Promise.all([
+      this.api.getUserbyId(this.leftImage.userID),
+      this.api.getUserbyId(this.rightImage.userID),
+    ]);
+
+    this.userData1 = userData1;
+    this.userData2 = userData2;
   }
-
-
 
   reshuffleImages(winner: imageUser, loser: imageUser) {
     if (this.isCD) {
       this.isCD = false;
-      this.chooseRandomImages(winner , loser);
+      this.chooseRandomImages(winner, loser);
       this.loadImages();
       if (this.canVote) {
         this.calrating(winner, loser);
@@ -154,7 +164,6 @@ export class MainComponent implements OnInit {
     await this.api.updateScore(loser.imageID, loser.count);
     await this.api.vote(winnerBody);
     await this.api.vote(loserBody);
-
   }
 
   private calculateExpectedScore(
@@ -191,32 +200,44 @@ export class MainComponent implements OnInit {
     this.shareData.userData = undefined;
   }
 
-  chooseRandomImages(select: imageUser , select2: imageUser) {
-    const foundItemIndex = this.images.findIndex(
-      (item) => item.imageID === select.imageID
-    );
+  countdownDuration: number = 10; // Set the countdown duration in seconds
+countdownInterval: any;
 
-    const foundItemIndex2 = this.images.findIndex(
-      (item) => item.imageID === select2.imageID
-    );
+chooseRandomImages(select: imageUser, select2: imageUser) {
+  const foundItemIndex = this.images.findIndex(
+    (item) => item.imageID === select.imageID
+  );
 
-    if (foundItemIndex !== -1 && foundItemIndex2 !== -1) {
-      const chosenImage = this.images.splice(foundItemIndex, 1)[0];
-      const chosenImage2 = this.images.splice(foundItemIndex2, 1)[0];
+  const foundItemIndex2 = this.images.findIndex(
+    (item) => item.imageID === select2.imageID
+  );
 
-      console.log('all', this.images);
-      setTimeout(() => {
-        this.images.push(chosenImage);
-        this.images.push(chosenImage2);
-        console.log('Array after addition:', this.images);
-        if (this.images.length >= 2) {
+  if (foundItemIndex !== -1 && foundItemIndex2 !== -1) {
+    const chosenImage = this.images.splice(foundItemIndex, 1)[0];
+    const chosenImage2 = this.images.splice(foundItemIndex2, 1)[0];
+    console.log('Removed images after vote:', chosenImage, chosenImage2);
+    console.log('all', this.images);
+
+    if (this.images.length === 2) {
+      this.canVote = false; // Disable further voting when only two images are left
+
+      // Start the countdown
+      this.countdownInterval = setInterval(() => {
+        this.countdownDuration--;
+
+        if (this.countdownDuration === 0) {
+          clearInterval(this.countdownInterval);
+          this.images.push(chosenImage, chosenImage2);
+          console.log('Array after addition:', this.images);
           this.canVote = true;
+          this.countdownDuration = 10; // Reset the countdown duration
         }
-      }, 100000);
-    } else {
-      console.log(
-        `Item with imageID ${select.imageID} not found in the array or Item with imageID ${select2.imageID} not found in the array.`
-      );
+      }, 1000);
     }
+  } else {
+    console.log(
+      `Item with imageID ${select.imageID} or ${select2.imageID} not found in the array.`
+    );
   }
+}
 }

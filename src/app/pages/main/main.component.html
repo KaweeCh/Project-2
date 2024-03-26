@@ -15,12 +15,6 @@
                 </button>
             </div>
 
-            <div class="logo-container">
-                <button mat-button color="basic" class="bt-span">
-                    <mat-icon class="icon-margin">star</mat-icon>
-                    Rating
-                </button>
-            </div>
             <button mat-flat-button type="submit" color="basic" class="mat-bt logout" (click)="navigateToLogin()">
                 <mat-icon>exit_to_app</mat-icon>
                 Logout
@@ -66,7 +60,7 @@
             <div class="item" >
                 <img [src]="leftImage?.url" (click)="reshuffleImages(leftImage, rightImage)" alt="">
                 <h3>
-                    view by {{ leftImage?.username || 'ไม่พบผู้ใช้' }}
+                    view by {{ userData1?.username || 'ไม่พบผู้ใช้' }}
                     <mat-icon style="color: red;">favorite</mat-icon>
                     {{ leftImage?.count || 0 || 'ไม่พบคะแนน' }}
                 </h3>
