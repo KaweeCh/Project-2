@@ -5,11 +5,15 @@ import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivatedRoute } from '@angular/router';
-import { User, imageUpload, imageUser } from '../../../model/model';
+import { User, imageUpload, imageUser, rankID } from '../../../model/model';
 import { ApiService } from '../../../services/api-service';
 import { ShareService } from '../../../services/share.service';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { UpdateProfileDialogComponent } from './edit-profile/update-profile-dialog.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { UpdatePasswordDialogComponent } from './edit-password/update-password-dialog.component';
 
 @Component({
   selector: 'app-profile',
@@ -21,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
+    MatMenuModule,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -31,43 +36,50 @@ export class ProfileComponent {
     private route: ActivatedRoute,
     protected shareData: ShareService,
     protected api: ApiService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) {}
+  Today: imageUser[] = [];
+  Yesterday: imageUser[] = [];
   id: any;
   public images: imageUser[] = [];
   httpError: boolean = false;
   imageCount: number = 0;
   isAddIconTransformed: boolean = false;
   selectedFile: File | undefined;
+  updatefile: File | undefined;
   uploading: boolean = false;
-  userData : User | undefined;
-  deleteSelect : number[] = [];
+  userData: User | undefined;
+  deleteSelect: number[] = [];
+  rank: rankID[] = [];
   async ngOnInit() {
     this.checkLogin();
     this.setData();
     this.getImage();
   }
 
-  async getImage(){
+  async getImage() {
+    this.getTopImageData();
+    this.getRank(this.Today, this.Yesterday);
     await this.shareData.getImage(this.id);
     this.images = this.shareData.images;
     this.imageCount = this.images.length;
   }
 
-  setData(){
+  setData() {
     this.id = localStorage.getItem('userID');
-    const userDataString = localStorage.getItem("userData");
+    const userDataString = localStorage.getItem('userData');
     this.userData = userDataString ? JSON.parse(userDataString) : null;
   }
 
-  checkLogin(){
-    if(!localStorage.getItem("userData") || !localStorage.getItem("userID")){
+  checkLogin() {
+    if (!localStorage.getItem('userData') || !localStorage.getItem('userID')) {
       this.navigateToLogin();
     }
   }
 
-  toggleTransform(id: number , event : Event) {
-    const findIndex = this.deleteSelect.findIndex(item => item === id);
+  toggleTransform(id: number, event: Event) {
+    const findIndex = this.deleteSelect.findIndex((item) => item === id);
     const icon = event.currentTarget as HTMLElement;
     icon.classList.toggle('transformed');
     if (findIndex !== -1) {
@@ -78,68 +90,155 @@ export class ProfileComponent {
     console.log(this.deleteSelect);
   }
 
-  // async loadData() {
-  //   if (!this.id) {
-  //     return;
-  //   }
-  //   this.shareData.userData = await this.api.getUserbyId(this.id);
-  //   localStorage.setItem('userData', JSON.stringify(this.shareData.userData));
-  //   console.log(this.shareData.userData);
-  // }
-
   handleFileInput(event: any) {
     this.selectedFile = event.target.files[0];
   }
 
-  async sendFile() {
+  async sendFile(userID: string) {
     if (!this.selectedFile) {
       console.error('No file selected');
       return;
     }
 
-    try {
-      this.uploading = true; // เริ่มสถานะกำลังโหลด
-      const uploadedImage = await this.api.uploadImage(this.selectedFile);
-      console.log('Uploaded image:', uploadedImage);
+    if (this.images.length >= 5) {
+      window.alert('Cannot upload more than 5 images');
       this.selectedFile = undefined;
+      return;
+    }
+
+    try {
+      this.uploading = true;
+      const uploadedImage = await this.api.uploadImage(
+        this.selectedFile,
+        userID
+      );
+      console.log('Uploaded image:', uploadedImage);
+
+      await this.getImage();
+
+      this.selectedFile = undefined;
+      window.alert('Image uploaded successfully');
     } catch (error) {
+      this.selectedFile = undefined;
       console.error('Error uploading image:', error);
-      // Handle error
+      window.alert('Failed to upload image');
     } finally {
-      this.uploading = false; // สิ้นสถานะกำลังโหลด
+      this.uploading = false;
     }
   }
 
+  async getTopImageData() {
+    this.Today = await this.api.gettodayrank();
+    this.Yesterday = await this.api.getyesterdayrank();
+    console.log('Today', this.Today);
+    console.log('Yesterday', this.Yesterday);
+    this.getRank(this.Today, this.Yesterday);
+  }
+
+  getRank(today: imageUser[], yesterday: imageUser[]): void {
+    for (let i = 0; i < today.length; i++) {
+      const todayImage = today[i];
+      const yesterdayImage = yesterday.find(
+        (img) => img.imageID === todayImage.imageID
+      ); // Use '===' for comparison
+      if (yesterdayImage) {
+        const difference = yesterdayImage.rankYesterday - todayImage.rankToday; // Calculate the rank difference
+        const rankNow: rankID = {
+          imageID: todayImage.imageID,
+          rankDiff: difference,
+          url: todayImage.url,
+          username: todayImage.username,
+          voteScore: todayImage.count,
+        };
+        this.rank.push(rankNow);
+      } else {
+        // Handle if the image is new today and was not present yesterday
+        const rankNow: rankID = {
+          imageID: todayImage.imageID,
+          rankDiff: 0,
+          url: todayImage.url,
+          username: todayImage.username,
+          voteScore: todayImage.count,
+        };
+        this.rank.push(rankNow);
+      }
+    }
+    console.log(this.rank);
+  }
+
+  async uploadProfileImage(event: any) {
+    // // const file = event.target?.files[0];
+    // this.updatefile = event.target.files[0];
+    // try {
+    //   this.uploading = true;
+    //   const uploadedImage = await this.api.uploadImage(
+    //     this.updatefile,
+    //     userID
+    //   );
+    //   console.log('Uploaded image:', uploadedImage);
+    //   await this.getImage();
+    //   this.updatefile = undefined;
+    //   window.alert('Image uploaded successfully');
+    // } catch (error) {
+    //   this.updatefile = undefined;
+    //   console.error('Error uploading image:', error);
+    //   window.alert('Failed to upload image');
+    // } finally {
+    //   this.uploading = false;
+    // }
+  }
+
+  editProfile(): void {
+    const dialogRef = this.dialog.open(UpdateProfileDialogComponent, {
+      width: '500px',
+      data: { userData: this.userData },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('The dialog was closed');
+    });
+  }
+
+  editPassword(): void {
+    const dialogRef = this.dialog.open(UpdatePasswordDialogComponent, {
+      width: '500px',
+      data: { userId: this.id },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('The dialog was closed');
+    });
+  }
+
   async deleteImage(id: number) {
-    const userConfirmed = window.confirm("ต้องการที่จะลบรูปภาพนี้หรือไม่?");
-    
+    const userConfirmed = window.confirm('Do you want to delete this image?');
+
     if (userConfirmed) {
       const status = await this.api.deleteImagebyId(id);
       window.location.reload();
     } else {
-      console.log("ยกเลิกการลบรูปภาพ");
+      console.log('Canceled image deletion');
     }
   }
 
   async deleteAllImage() {
     if (!this.deleteSelect || this.deleteSelect.length === 0) {
-      window.alert("โปรดเลือกรูปภาพ");
-      
-    }else{
-      const userConfirmed = window.confirm("ต้องการที่จะลบรูปภาพที่ถูกเลือกหรือไม่?");
-    if (userConfirmed) {
-      for (const i of this.deleteSelect) {
-        const status = await this.api.deleteImagebyId(i);
-      }
-      this.deleteSelect = [];
-      window.location.reload();
+      window.alert('Please select an image');
     } else {
-      console.log("ยกเลิกการลบรูปภาพ");
+      const userConfirmed = window.confirm(
+        'Do you want to delete the selected images?'
+      );
+      if (userConfirmed) {
+        for (const i of this.deleteSelect) {
+          const status = await this.api.deleteImagebyId(i);
+        }
+        this.deleteSelect = [];
+        window.location.reload();
+      } else {
+        console.log('Canceled image deletion');
+      }
     }
-    }
-    
   }
-  
 
   navigateChart(imageId: number) {
     this.router.navigate(['/chart', imageId]);

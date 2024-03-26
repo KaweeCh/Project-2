@@ -1,3 +1,5 @@
+@import url(https://unpkg.com/@webpixels/css@1.1.5/dist/index.css);
+
 .fxLayout-dark {
   width: 100%;
   height: 64px;
@@ -62,8 +64,8 @@
     align-items: center;
     display: flex;
     img[logo] {
-      height: 40px;
-      width: 40px;
+      height: 45px;
+      width: 45px;
       object-fit: cover;
       border-radius: 100%;
       background-color: white;
@@ -94,58 +96,65 @@
   }
 }
 
-.TextHead {
-  font-size: 36px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
-}
-
-.vote-con {
-  margin-top: 50px;
-  text-align: center;
+body {
   font-family: "Anonymous Pro", monospace;
 }
 
-.img-con {
-    justify-content: center;
-    align-items: center;
-    padding: 0 150px;
-    
-  
-    img {
-      height: 400px;
-      width: 600px;
-      margin: 0 1rem;
-      object-fit: cover;
-      transition: 0.2s ease;
-      cursor: pointer;
-    }
-  
-    h3 {
-      margin-top: 1rem;
-    }
-  
-    img:hover {
-      transform: scale(1.03);
-    }
-  
-    .item h3 {
-      justify-content: center;
-      display: flex;
-      align-items: center;
-    }
-  
-    .item h3 mat-icon {
-      padding: 0 5px;
-    }
-  
-    .view-by-text {
-      font-family: "Anonymous Pro", monospace;
-      font-weight: bolder;
-    }
-    
-  }
-  
-  
+.d-flex {
+  font-family: Anonymous Pro, monospace;
+}
+
+.header{
+  padding-top: 50px;
+  padding-bottom: 30px;
+}
+
+.container-fluid {
+  padding: 0 100px;
+}
+
+.container-fluid p {
+  font-size: 22px;
+}
+
+.table-header {
+  font-size: 18px;
+  font-weight: bolder;
+}
+
+.table-data {
+  font-size: 16px;
+  font-weight: lighter;
+  cursor: pointer;
+}
+
+
+
+.text-heading {
+  font-size: 16px;
+  font-weight: lighter;
+  cursor: pointer;
+}
+
+a.btn {
+  width: 70px;
+  margin-right: 10px;
+  font-size: 16px;
+  font-weight: lighter;
+}
+
+.icon-large {
+  font-size: 26px;
+}
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border: 2px solid #ccc;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.avatar:hover {
+  outline: 2px solid wheat;
+}

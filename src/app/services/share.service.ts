@@ -25,7 +25,7 @@ export class ShareService {
 
   async getUser() {
     this.users = (await this.api.getUser()) || [];
-    console.log('Users:', this.users);
+    // console.log('Users:', this.users);
   }
 
   async getImage(userId : number) {
@@ -34,6 +34,7 @@ export class ShareService {
       this.images = this.images.filter((image) => image.userID == userId);
     }
   }
+  
 
   getImageCountForUser(userId: number): number {
     const userImages = this.images.filter((image) => image.userID === userId);
@@ -46,4 +47,6 @@ export class ShareService {
     if (confirm('ลงทะเบียนสำเร็จ เข้าสู่หน้าล็อกอิน?'))
       this.router.navigate(['/login']);
   }
+
+  
 }

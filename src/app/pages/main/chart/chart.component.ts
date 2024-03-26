@@ -30,11 +30,8 @@ export class ChartComponent {
   public chart: any;
   images: imageUpload[] = [];
   statistics: Statistic[] = [];
-  lastestData: Statistic | undefined;
-  lastDay : any;
   httpError: boolean = false;
   userID: any;
-  temp : any
   userData!: User;
   id: any;
   data: any;
@@ -44,16 +41,41 @@ export class ChartComponent {
     protected shareData: ShareService,
     protected api: ApiService,
     private router: Router
-  ) { }
+  ) {}
 
   async ngOnInit() {
+    this.checkData();
     this.checkLogin();
     const userDataString = localStorage.getItem('userData');
     this.userData = userDataString ? JSON.parse(userDataString) : null;
     this.id = this.route.snapshot.paramMap.get('id');
     this.statistics = await this.api.getStatistic(this.id, 7);
-  
     this.createChart();
+  }
+
+  checkData() {
+    const userDataString = localStorage.getItem('userData');
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+        this.shareData.userData = userData;
+      } catch (error) {
+        console.error('Error parsing userData from localStorage:', error);
+        this.loadData();
+      }
+    } else {
+      this.loadData();
+    }
+  }
+  async loadData() {
+    if (!this.id) {
+      return;
+    }
+    if (!localStorage.getItem('userData')) {
+      this.shareData.userData = await this.api.getUserbyId(this.id);
+      localStorage.setItem('userData', JSON.stringify(this.shareData.userData));
+      console.log(this.shareData.userData);
+    }
   }
 
   checkLogin() {
@@ -83,6 +105,10 @@ export class ChartComponent {
 
   navigateProfile() {
     this.router.navigate(['/profile']);
+  }
+
+  navigateToAdmin() {
+    this.router.navigate(['/admin/' + this.userData.userID]);
   }
 
   navigateTop() {
@@ -117,30 +143,26 @@ export class ChartComponent {
   //   });
   // }
 
-  async createChart() {
+  createChart() {
     const currentDate = new Date();
     const labels = [];
     const data = [];
-    const point : any = await this.api.getStatisticbyId(this.id);
     const pointRadius = 5;
     for (let i = 6; i >= 0; i--) {
       const date = new Date(currentDate);
       date.setDate(currentDate.getDate() - i);
-  
+
       labels.push(
         `${date.getFullYear()}-${(date.getMonth() + 1)
           .toString()
           .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
       );
     }
-  
+
     for (let i = 0; i < 7; i++) {
       const currentDateMinusDays = new Date(currentDate);
       currentDateMinusDays.setDate(currentDate.getDate() - i);
-  
-      console.log('Index:', i); // เพิ่มบรรทัดนี้เพื่อทำการล็อกค่า index
-      console.log('Current Date:', currentDateMinusDays); // ล็อกค่าวันที่ปัจจุบันที่ใช้ในการตรวจสอบ
-  
+
       // Check if there is data for the current date
       const dataForCurrentDate = this.statistics.find((statistic) => {
         const statisticDate = new Date(statistic.date); // Assuming 'date' is the property in your Statistic model that contains the date
@@ -150,33 +172,16 @@ export class ChartComponent {
           currentDateMinusDays.getDate() === statisticDate.getDate()
         );
       });
-  
-      console.log('Data for Current Date:', dataForCurrentDate); // ล็อกข้อมูลสถิติสำหรับวันที่ปัจจุบัน
-  
+
       if (dataForCurrentDate) {
         data.push(dataForCurrentDate.voteScore);
       } else {
-        // If no data for the current date, fetch data from the previous day
-        const previousDate = new Date(currentDateMinusDays);
-        previousDate.setDate(currentDateMinusDays.getDate() - 1);
-        const dataFromPreviousDate = this.statistics.find((statistic) => {
-          const statisticDate = new Date(statistic.date);
-          return (
-            previousDate.getFullYear() === statisticDate.getFullYear() &&
-            previousDate.getMonth() === statisticDate.getMonth() &&
-            previousDate.getDate() === statisticDate.getDate()
-          );
-        });
-        if (dataFromPreviousDate) {
-          data.push(dataFromPreviousDate.voteScore);
-        } else {
-          data.push(point[0].voteScore);
-        }
+        data.push(0);
       }
     }
-  
+
     console.error(data);
-  
+
     this.chart = new Chart('MyChart', {
       type: 'line',
       data: {
@@ -198,5 +203,4 @@ export class ChartComponent {
       },
     });
   }
-  
 }

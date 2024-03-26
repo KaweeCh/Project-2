@@ -21,7 +21,7 @@ export class LoginComponent {
   constructor(private router: Router, protected shareData: ShareService) {
     localStorage.clear();
     this.shareData.getUser();
-    console.log(this.shareData);
+    // console.log(this.shareData);
   }
 
   navigateToSignUp() {
@@ -30,6 +30,10 @@ export class LoginComponent {
 
   navigateToMain() {
     this.router.navigate(['/']);
+  }
+
+  navigateToAdmin(id : number) {
+    this.router.navigate(['/admin/' + id]);
   }
 
   login(user: string, password: string) {
@@ -44,7 +48,13 @@ export class LoginComponent {
 
     if (foundUser) {
       if (password === foundUser.password) {
-        this.navigateToMain();
+        // Check if the user is an owner or a regular user
+        if (foundUser.type === 'owner') {
+          this.navigateToAdmin(foundUser.userID);
+          
+        } else {
+          this.navigateToMain();
+        }
         localStorage.setItem('userID', JSON.stringify(foundUser.userID));
       } else {
         this.loginError = 'Incorrect password.';

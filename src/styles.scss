@@ -1,4 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: "Good Timing";
+  src: url('./assets/Font/good\ timing\ bd.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
 
 html,
 body {
@@ -9,3 +14,6 @@ body {
   font-family: "Anonymous Pro", monospace;
   background-color: #ECECEC;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

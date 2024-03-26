@@ -13,6 +13,13 @@ export interface Register {
   email: string;
 }
 
+export interface UpdateUser {
+  userID: number;
+  username: string;
+  password: string;
+  image: string;
+}
+
 export interface imageUpload {
   imageID: number;
   url: string;
@@ -53,3 +60,16 @@ export interface Statistic {
   date: Date;
   imageID: number;
 }
+
+export interface ImageCount {
+  userID: number;
+  image_count: number;
+}
+
+
+// export interface Statistics {
+//   voteScore: number;
+//   date: Date;
+//   imageID: number;
+// }
+
